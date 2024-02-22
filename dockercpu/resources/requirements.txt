@@ -1,0 +1,7 @@
+numpy
+scipy
+jupyterlab
+ipywidgets
+ttslearn
+streamlit
+stqdm
