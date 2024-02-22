@@ -24,12 +24,11 @@ RUN apt-get update \
        libsamplerate0 \
        libsndfile1 \
        cmake \
+       nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # It is better to use jovyan user to execute jupyter-lab.
-# The /home/jovyan/.jupyter will hold the downloaded cache of tgz etc.?
-# No, it seems to be the /root/.cache, i.e., /home/jovyan/.cache/ttslearn (make this persistent)
 RUN useradd --create-home --shell /bin/bash jovyan
 USER jovyan
 WORKDIR /home/jovyan
@@ -71,8 +70,10 @@ RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
 # >>> quit()
 
 # How to run the jupyter-lab server from inside container.
+#   (Preparation in host for persistent cache:
+#   mkdir `pwd`/jovyan/dotcache/ttslearn && mkdir `pwd`/jovyan/dotjupyter)
 # First, run the container:
-# docker run -it --rm --name ttslearncont -v `dirname $PWD`:/home/jovyan/work -p 127.0.0.1:8889:8888 jupyterlab-ttslearn
+# docker run -it --rm --name ttslearncont -v `dirname $PWD`:/home/jovyan/work -v `pwd`/jovyan/dotcache/ttslearn:/home/jovyan/.cache/ttslearn -v `pwd`/jovyan/dotjupyter:/home/jovyan/.jupyter -p 127.0.0.1:8889:8888 jupyterlab-ttslearn
 # Second, from inside the container, execute this command:
 # jupyter-lab --allow-root --ip=0.0.0.0 --port=8888 --no-browser --IdentityProvider.token='' --notebook-dir=/home/jovyan/work
 # Third, from host, access http://localhost:8889
