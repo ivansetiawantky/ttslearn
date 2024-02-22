@@ -75,5 +75,5 @@ RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
 # First, run the container:
 # docker run -it --rm --name ttslearncont -v `dirname $PWD`:/home/jovyan/work -v `pwd`/jovyan/dotcache/ttslearn:/home/jovyan/.cache/ttslearn -v `pwd`/jovyan/dotjupyter:/home/jovyan/.jupyter -p 127.0.0.1:8889:8888 jupyterlab-ttslearn
 # Second, from inside the container, execute this command:
-# jupyter-lab --allow-root --ip=0.0.0.0 --port=8888 --no-browser --IdentityProvider.token='' --notebook-dir=/home/jovyan/work
+# jupyter-lab [--allow-root] --ip=0.0.0.0 --port=8888 --no-browser --IdentityProvider.token='' --ServerApp.disable_check_xsrf=True --notebook-dir=/home/jovyan/work
 # Third, from host, access http://localhost:8889

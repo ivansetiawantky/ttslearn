@@ -1,0 +1,33 @@
+version: "3.9"
+
+# docker compose -f ./docker-compose.yml up -d
+# To build also: docker compose -f ./docker-compose.yml up --build -d
+# docker compose -f ./docker-compose.yml down --volumes
+# docker compose -f ./docker-compose.yml logs -f --tail=100
+# docker compose -f ./docker-compose.yml logs -f --no-color --tail=100
+# docker compose -f ./docker-compose.yml logs -f -t --tail=100
+
+services:
+  notebook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: jupyterlab-ttslearn
+    container_name: ttslearncont
+    entrypoint: >
+      jupyter-lab
+      --ip=0.0.0.0
+      --port=8888
+      --no-browser
+      --IdentityProvider.token=''
+      --ServerApp.disable_check_xsrf=True
+      --notebook-dir=/home/jovyan/work
+    expose:
+      - "8888"
+    ports:
+    - "127.0.0.1:8889:8888"
+    restart: always
+    volumes:
+    - ../:/home/jovyan/work
+    - ./jovyan/dotcache/ttslearn:/home/jovyan/.cache/ttslearn
+    - ./jovyan/dotjupyter:/home/jovyan/.jupyter
