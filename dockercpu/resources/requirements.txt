@@ -1,7 +1,13 @@
 numpy
 scipy
+black
+isort
 jupyterlab
+jupyterlab_code_formatter
+lckr-jupyterlab-variableinspector
+jupyterlab_widgets
 ipywidgets
+import-ipynb
 ttslearn
 streamlit
 stqdm

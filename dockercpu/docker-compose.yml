@@ -6,6 +6,21 @@ version: "3.9"
 # docker compose -f ./docker-compose.yml logs -f --tail=100
 # docker compose -f ./docker-compose.yml logs -f --no-color --tail=100
 # docker compose -f ./docker-compose.yml logs -f -t --tail=100
+#
+# Customize jupyterlab setting (/home/jovyan/.jupyter):
+# - Disable Settings->autosave documents
+# - Settings->Settings editor: Jupyterlab Code Formatter: Autoformat code when save the notebook
+# - Settings->Settings editor: Jupyterlab Code Formatter: Suppress formatter errors
+#
+# When commit the ipynb, before doing Save, MUST DO Edit->Clear Output of All Cells
+#
+# Usage of jupyterlab: https://www.idnet.co.jp/column/page_187.html
+# - `%time wav, sr = dnntts_engine.tts("あらゆる現実を、すべて自分のほうへねじ曲げたのだ。")` to measure performance
+# - `!pip3 freeze | grep jupyter` to execute shell command inside code cell
+# - `result = !pip3 list` will store the execution result in result variable
+# - `packages = [p.split() for p in result if "--" not in p]`
+# - Help: `from IPython.display import Audio` `Audio?` press Shift-Enter, then help of Audio will be printed
+# - In code cell then right click and Open Variable Inspector to see variable content.
 
 services:
   notebook:
