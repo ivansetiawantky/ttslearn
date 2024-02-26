@@ -1,0 +1,74 @@
+version: "3.9"
+
+# sudo docker-compose -f ./docker-compose.yml up -d
+# To build also: sudo docker-compose -f ./docker-compose.yml up --build -d
+# sudo docker-compose -f ./docker-compose.yml down --volumes
+# sudo docker-compose -f ./docker-compose.yml logs -f --tail=100
+# sudo docker-compose -f ./docker-compose.yml logs -f --no-color --tail=100
+# sudo docker-compose -f ./docker-compose.yml logs -f -t --tail=100
+# journalctl -f CONTAINER_NAME=ttslearncont (to follow)
+# journalctl -all CONTAINER_NAME=ttslearncont
+
+# Customize jupyterlab setting (/home/root/.jupyter):
+# - Disable Settings->autosave documents
+# - Settings->Settings editor: Jupyterlab Code Formatter: Autoformat code when save the notebook
+# - Settings->Settings editor: Jupyterlab Code Formatter: Suppress formatter errors
+#
+# When commit the ipynb, before doing Save, MUST DO Edit->Clear Output of All Cells
+#
+# Usage of jupyterlab: https://www.idnet.co.jp/column/page_187.html
+# - `%time wav, sr = dnntts_engine.tts("あらゆる現実を、すべて自分のほうへねじ曲げたのだ。")` to measure performance
+# - `!pip3 freeze | grep jupyter` to execute shell command inside code cell
+# - `result = !pip3 list` will store the execution result in result variable
+# - `packages = [p.split() for p in result if "--" not in p]`
+# - Help: `from IPython.display import Audio` `Audio?` press Shift-Enter, then help of Audio will be printed
+# - In code cell then right click and Open Variable Inspector to see variable content.
+
+services:
+  notebook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: jupyterlab-ttslearn
+    container_name: ttslearncont
+    entrypoint: >
+      jupyter-lab
+      --allow-root
+      --ip=0.0.0.0
+      --port=8888
+      --no-browser
+      --IdentityProvider.token=''
+      --ServerApp.disable_check_xsrf=True
+      --notebook-dir=/workdir
+    expose:
+      - "8888"
+    ports:
+      - "8889:8888"
+    restart: always
+    volumes:
+      - ../:/workdir
+      - ./root/dotcache/ttslearn:/root/.cache/ttslearn
+      - ./root/dotjupyter:/root/.jupyter
+    # https://qiita.com/sekitaka_1214/items/2af73d5dc56c6af8a167
+    # tty: true
+    # https://qiita.com/ntrlmt/items/c001f0f98da426715cbd
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - LD_PRELOAD=/venv/lib/python3.8/site-packages/scikit_learn.libs/libgomp-d22c30c5.so.1.0.0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities:
+              - gpu
+    # logging:
+    #   driver: "json-file"
+    #   options:
+    #     max-size: "10m"
+    #     max-file: "5"
+    logging:
+      driver: journald
+      options:
+        tag: "{{.Name}}"
