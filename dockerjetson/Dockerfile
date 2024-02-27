@@ -1,6 +1,5 @@
-# May need to do multistage build to install the (cuda etc.) runtime only,
-# so the image size is smaller.
-# Also see:
+# Use l4t-cuda runtime as base image. nvidia-cuda and cuda-toolkit-11-4 is available here.
+# Use multistage build to reduce the image size. See:
 #    https://stackoverflow.com/questions/48561981/activate-python-virtualenv-in-dockerfile
 #    https://deecode.net/?p=1999
 #
@@ -8,7 +7,6 @@
 #
 # Inside container: $ pip3 check
 # Confirm that the image is OK by issuing below python3 lines inside container:
-# >>> import tensorflow
 # >>> import torch
 # >>> print(torch.cuda.is_available())
 #
@@ -19,7 +17,8 @@
 # https://gitlab.com/nvidia/container-images/l4t-base/-/blob/master/Dockerfile.cuda
 # https://github.com/dusty-nv/jetson-containers/blob/master/Dockerfile.tensorflow
 #
-FROM nvcr.io/nvidia/l4t-base:r35.1.0
+# FROM nvcr.io/nvidia/l4t-base:r35.1.0
+FROM nvcr.io/nvidia/l4t-cuda:11.4.19-runtime as builder
 
 USER root
 WORKDIR /workdir
@@ -48,22 +47,21 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-       python3-venv \
-       python3-dev \
-       python3-pip \
-       build-essential \
-       libsamplerate0 \
-       libsndfile1 \
-       cmake \
-       nodejs \
+    python3-venv \
+    python3-dev \
+    python3-pip \
+    build-essential \
+    libsamplerate0 \
+    libsndfile1 \
+    cmake \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Install nvidia-cuda, cuda-toolkit-11-4, nvidia-cudnn8
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    nvidia-cuda \
-    cuda-toolkit-11-4 \
+    # nvidia-cuda \
+    # cuda-toolkit-11-4 \
     nvidia-cudnn8 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -75,7 +73,7 @@ RUN ldconfig
 # Setup environment variables
 #
 ENV CUDA_HOME="/usr/local/cuda"
-ENV PATH="/usr/local/cuda/bin:${PATH}"
+# ENV PATH="/usr/local/cuda/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
 
 # It is better to use jovyan user to execute jupyter-lab, but cannot use jovyan in jetson
@@ -105,7 +103,6 @@ RUN wget --quiet --show-progress --progress=bar:force:noscroll --no-check-certif
 # sudo docker build [--no-cache] -t jupyterlab-ttslearn -f Dockerfile . [2>&1 | tee build.log]
 # sudo docker run --rm -ti jupyterlab-ttslearn whoami
 # sudo docker run --rm -ti jupyterlab-ttslearn bash -c 'which python3 && python3 --version && which pip3 && pip3 --version'
-# sudo docker run --rm -ti jupyterlab-ttslearn bash -c 'which python && python --version && which pip && pip --version'
 
 # do pip3 install inside root's /venv (i.e. after ENV PATH=/venv/bin:$PATH layer)
 COPY ./resources/requirements.txt /tmp
@@ -142,3 +139,46 @@ RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
 # NVIDIA_VISIBLE_DEVICES=all NVIDIA_DRIVER_CAPABILITIES=all LD_PRELOAD=$ldpreload jupyter-lab --allow-root --ip=0.0.0.0 --port=8888 --no-browser --IdentityProvider.token='' --ServerApp.disable_check_xsrf=True --notebook-dir=/workdir
 #
 # Third, from host, access http://localhost:8889
+
+FROM nvcr.io/nvidia/l4t-cuda:11.4.19-runtime as runner
+
+USER root
+WORKDIR /workdir
+
+RUN echo "deb https://repo.download.nvidia.com/jetson/t234 r35.1 main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV TZ="Asia/Tokyo"
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# No need to install python-wheel builder-tools (build-essential, etc.). Just install required libraries.
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    libsamplerate0 \
+    libsndfile1 \
+    nvidia-cudnn8 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Update libraries, after ALL apt-get install are done.
+RUN ldconfig
+
+#
+# Setup environment variables
+#
+ENV CUDA_HOME="/usr/local/cuda"
+# ENV PATH="/usr/local/cuda/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
+
+ENV PATH=/venv/bin:$PATH
+
+# copy torch and modules in requirements.txt
+COPY --from=builder /venv /venv
+
+# builder is 6.24GB, and runner is 5.92GB
+# Finally, can `sudo docker rmi nvcr.io/nvidia/l4t-cuda:11.4.19-runtime`
