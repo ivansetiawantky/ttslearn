@@ -21,7 +21,14 @@ version: "3.9"
 # - `packages = [p.split() for p in result if "--" not in p]`
 # - Help: `from IPython.display import Audio` `Audio?` press Shift-Enter, then help of Audio will be printed
 # - In code cell then right click and Open Variable Inspector to see variable content.
-
+#
+# Using vscode:
+# 1. docker compose -f ./docker-compose.yml up -d
+# 2. In vscode, use ">Dev Container" (Command+Shift+p) to attach to ttslearncont container.
+# 3. Open ipynb
+# TODO:
+# 1. autocompletion using vscode
+# 2. vscode jupyterlab code formatter (code format when save)
 services:
   notebook:
     build:
@@ -29,20 +36,23 @@ services:
       dockerfile: Dockerfile
     image: jupyterlab-ttslearn
     container_name: ttslearncont
-    entrypoint: >
-      jupyter-lab
-      --ip=0.0.0.0
-      --port=8888
-      --no-browser
-      --IdentityProvider.token=''
-      --ServerApp.disable_check_xsrf=True
-      --notebook-dir=/home/jovyan/work
+    # entrypoint: >
+    # jupyter-lab
+    # --ip=0.0.0.0
+    # --port=8888
+    # --no-browser
+    # --IdentityProvider.token=''
+    # --ServerApp.disable_check_xsrf=True
+    # --notebook-dir=/home/jovyan/work
+    command: "bash /home/jovyan/work/dockercpu/start-command.sh"
     expose:
-      - "8888"
+      - 8888
     ports:
-    - "127.0.0.1:8889:8888"
+    - 8889:8888
     restart: always
     volumes:
     - ../:/home/jovyan/work
     - ./jovyan/dotcache/ttslearn:/home/jovyan/.cache/ttslearn
     - ./jovyan/dotjupyter:/home/jovyan/.jupyter
+    environment:
+    - JUPYTER_ENABLE_LAB=yes

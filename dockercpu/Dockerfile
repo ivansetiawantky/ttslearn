@@ -17,14 +17,14 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-       python3-venv \
-       python3-dev \
-       python3-pip \
-       build-essential \
-       libsamplerate0 \
-       libsndfile1 \
-       cmake \
-       nodejs \
+    python3-venv \
+    python3-dev \
+    python3-pip \
+    build-essential \
+    libsamplerate0 \
+    libsndfile1 \
+    cmake \
+    nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
