@@ -6,8 +6,8 @@ version: "3.9"
 # sudo docker-compose -f ./docker-compose.yml logs -f --tail=100
 # sudo docker-compose -f ./docker-compose.yml logs -f --no-color --tail=100
 # sudo docker-compose -f ./docker-compose.yml logs -f -t --tail=100
-# journalctl -f CONTAINER_NAME=ttslearncont (to follow)
-# journalctl -all CONTAINER_NAME=ttslearncont
+# journalctl -f CONTAINER_NAME=jetsoncont (to follow)
+# journalctl -all CONTAINER_NAME=jetsoncont
 
 # Customize jupyterlab setting (/home/root/.jupyter):
 # - Disable Settings->autosave documents
@@ -23,27 +23,79 @@ version: "3.9"
 # - `packages = [p.split() for p in result if "--" not in p]`
 # - Help: `from IPython.display import Audio` `Audio?` press Shift-Enter, then help of Audio will be printed
 # - In code cell then right click and Open Variable Inspector to see variable content.
-
+#
+#
+# 1. > Remote-SSH to jetson with user@192.*
+# 2. > Dev Containers: attach to running container
+# NOTE: workspaceFolder/.env file MUST be used to load LD_PRELOAD environmental variable!
+#
+# To view or update it (extensions etc.) after attaching, select > Dev Containers: Open Container Configuration File from the Command Palette.
+#   - Location of setting file "imagename.json" is in the host:~/Library/Application Support/Code/User/globalStorage ... (so it is PERSISTENT)
+#
+# {
+#       "extensions": [
+#               "charliermarsh.ruff",
+#               "ms-python.debugpy",
+#               "ms-python.python",
+#               "ms-python.vscode-pylance",
+#               "ms-toolsai.jupyter",
+#               "ms-toolsai.jupyter-keymap",
+#               "ms-toolsai.jupyter-renderers",
+#               "ms-toolsai.vscode-jupyter-cell-tags",
+#               "ms-toolsai.vscode-jupyter-slideshow"
+#       ],
+#       "settings": {
+#               "python.defaultInterpreterPath": "/venv/bin/python",
+#               "editor.formatOnSave": true,
+#               "notebook.formatOnSave.enabled": true,
+#               "notebook.formatOnCellExecution": true,
+#               "ruff.importStrategy": "useBundled",
+#               "editor.defaultFormatter": "charliermarsh.ruff",
+#               "[python]": {
+#                       "editor.formatOnSave": true,
+#                       "editor.defaultFormatter": "charliermarsh.ruff",
+#                       "editor.codeActionsOnSave": {
+#                               "source.fixAll": "explicit",
+#                               "source.organizeImports": "explicit",
+#                               "source.fixAll.ruff": "explicit",
+#                               "source.organizeImports.ruff": "explicit"
+#                       }
+#               },
+#               "notebook.codeActionsOnSave": {
+#                       "notebook.source.fixAll": "explicit",
+#                       "notebook.source.organizeImports": "explicit",
+#                       "notebook.source.fixAll.ruff": "explicit",
+#                       "notebook.source.organizeImports.ruff": "explicit"
+#               },
+#               "editor.codeActionsOnSave": {
+#                       "source.fixAll": "explicit",
+#                       "source.organizeImports": "explicit"
+#               }
+#       },
+#       "workspaceFolder": "/workdir/notebooks"
+# }
+#
 services:
   notebook:
     build:
       context: .
       dockerfile: Dockerfile
-    image: jupyterlab-ttslearn
-    container_name: ttslearncont
-    entrypoint: >
-      jupyter-lab
-      --allow-root
-      --ip=0.0.0.0
-      --port=8888
-      --no-browser
-      --IdentityProvider.token=''
-      --ServerApp.disable_check_xsrf=True
-      --notebook-dir=/workdir
+    image: jetson-ttslearn
+    container_name: jetsoncont
+    # entrypoint: >
+    #   jupyter-lab
+    #   --allow-root
+    #   --ip=0.0.0.0
+    #   --port=8888
+    #   --no-browser
+    #   --IdentityProvider.token=''
+    #   --ServerApp.disable_check_xsrf=True
+    #   --notebook-dir=/workdir
+    command: "bash /workdir/dockerjetson/start-command.sh"
     expose:
-      - "8888"
+      - 8888
     ports:
-      - "8889:8888"
+      - 8889:8888
     restart: always
     volumes:
       - ../:/workdir
@@ -57,6 +109,7 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
       - LD_PRELOAD=/venv/lib/python3.8/site-packages/scikit_learn.libs/libgomp-d22c30c5.so.1.0.0
+      - JUPYTER_ENABLE_LAB=yes
     deploy:
       resources:
         reservations:

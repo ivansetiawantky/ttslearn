@@ -100,25 +100,25 @@ RUN wget --quiet --show-progress --progress=bar:force:noscroll --no-check-certif
     rm ${PYTORCH_WHL}
 
 # Until here: BUILD AND TEST PYTHON3
-# sudo docker build [--no-cache] -t jupyterlab-ttslearn -f Dockerfile . [2>&1 | tee build.log]
-# sudo docker run --rm -ti jupyterlab-ttslearn whoami
-# sudo docker run --rm -ti jupyterlab-ttslearn bash -c 'which python3 && python3 --version && which pip3 && pip3 --version'
+# sudo docker build [--no-cache] -t jetson-ttslearn -f Dockerfile . [2>&1 | tee build.log]
+# sudo docker run --rm -ti jetson-ttslearn whoami
+# sudo docker run --rm -ti jetson-ttslearn bash -c 'which python3 && python3 --version && which pip3 && pip3 --version'
 
 # do pip3 install inside root's /venv (i.e. after ENV PATH=/venv/bin:$PATH layer)
 COPY ./resources/requirements.txt /tmp
 RUN pip3 install --no-cache-dir wheel
 RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
 
-# sudo docker run --rm -ti jupyterlab-ttslearn bash -c 'pip3 freeze'
+# sudo docker run --rm -ti jetson-ttslearn bash -c 'pip3 freeze'
 
 # Run the ubuntu system:
-# sudo docker run --rm -it --name ttslearncont --runtime nvidia -w /workdir -v `dirname $PWD`:/workdir jupyterlab-ttslearn
+# sudo docker run --rm -it --name jetsoncont --runtime nvidia -w /workdir -v `dirname $PWD`:/workdir jetson-ttslearn
 
-# To execute another /bin/bash at the currently running container "ttslearncont":
-# sudo docker exec -it ttslearncont /bin/bash
+# To execute another /bin/bash at the currently running container "jetsoncont":
+# sudo docker exec -it jetsoncont /bin/bash
 
-# To execute another /bin/bash at the currently running container "ttslearncont", as root (for example to do `apt-get update`):
-# sudo docker exec -u root -it ttslearncont /bin/bash
+# To execute another /bin/bash at the currently running container "jetsoncont", as root (for example to do `apt-get update`):
+# sudo docker exec -u root -it jetsoncont /bin/bash
 
 # Inside the container do synthesis test (in python3 subshell):
 # >>> from ttslearn.dnntts import DNNTTS
@@ -132,7 +132,7 @@ RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
 #   (Preparation in host for persistent cache:
 #   mkdir `pwd`/root/dotcache/ttslearn && mkdir `pwd`/root/dotjupyter)
 # First, run the container:
-# sudo docker run -it --rm --name ttslearncont --runtime nvidia --gpus all -w /workdir -v `dirname $PWD`:/workdir -v `pwd`/root/dotcache/ttslearn:/root/.cache/ttslearn -v `pwd`/root/dotjupyter:/root/.jupyter -p 8889:8888 jupyterlab-ttslearn
+# sudo docker run -it --rm --name jetsoncont --runtime nvidia --gpus all -w /workdir -v `dirname $PWD`:/workdir -v `pwd`/root/dotcache/ttslearn:/root/.cache/ttslearn -v `pwd`/root/dotjupyter:/root/.jupyter -p 8889:8888 jetson-ttslearn
 #
 # Second, from inside the container, execute this command:
 # ldpreload=/venv/lib/python3.8/site-packages/scikit_learn.libs/libgomp-d22c30c5.so.1.0.0
