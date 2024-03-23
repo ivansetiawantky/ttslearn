@@ -79,6 +79,11 @@ version: "3.9"
 # Sort import using Command palette > Organize Imports, AT EACH CELL!!!!
 # Organize when inside Editor MODE!
 #
+# vscode jupyter's Esc is bind to quit edit mode, go to command mode.
+# Change this to Shift+Esc, so while in edit mode, Esc+f etc means forward 1 word (set in karabiner-elements).
+# How to: Code->Preferences->Keyboard shortcut. Search for notebook.cell.quitEdit. (2 places)
+# Change from Escape to Shift+Escape. (Reset keybinding when not needed).
+# Btw, press Enter to go from command mode to edit mode.
 services:
   notebook:
     build:
